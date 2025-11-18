@@ -1,4 +1,4 @@
-![Banner](https://via.placeholder.com/1000x250.png?text=Python+Registration+Form+Project)
+![Banner]([https://david-vxf.my.id/public/logo/logo.png])
 
 ------------------------------------------------------------------------
 
@@ -74,14 +74,6 @@ saving the data.
                      +--------+--------+
                      |    Program Selesai  |
                      +--------------------+
-
-------------------------------------------------------------------------
-
-## 🖼️ Screenshot (Optional)
-
-Tambahkan screenshot program Anda di bawah ini:
-
-    [contoh screenshot di sini]
 
 ------------------------------------------------------------------------
 
