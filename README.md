@@ -1,4 +1,4 @@
-![Banner]([https://david-vxf.my.id/public/logo/logo.png])
+![Banner](https://david-vxf.my.id/public/logo/logo.png)
 
 ------------------------------------------------------------------------
 
