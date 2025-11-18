@@ -6,7 +6,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
 ![Status](https://img.shields.io/badge/Status-Active-success)
-![License](https://img.shields.io/badge/License-Free-lightgrey)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Learning_Project](https://img.shields.io/badge/Type-Learning_Project-orange)
 
 ------------------------------------------------------------------------
