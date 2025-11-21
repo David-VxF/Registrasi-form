@@ -33,7 +33,6 @@ def dataPengguna():
     DF = pd.read_csv("data_pengguna.csv")
     for i,nama in enumerate(DF['nama']):
         print(f"{i:04d} {nama}")
-        dummy = input()
 
 def register():
     flag = True
@@ -73,7 +72,18 @@ Kota\t: {kota}
                     flag = False
                     dummy = input()
                     break
+import pandas as pd
+
 def lihatPengguna():
+    # Load ulang data setiap fungsi dipanggil
+    df = pd.read_csv("data_pengguna.csv")
+
+    # Bersihkan header
+    df.columns = df.columns.str.strip()
+
+    # Bersihkan isi data (tiap sel string)
+    df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
+
     while True:
         id_str = input("Masukkan ID (4 digit) >>> ")
 
@@ -83,34 +93,36 @@ def lihatPengguna():
 
         id_user = int(id_str)
 
-        if id_user >= len(DF):
+        if not (0 <= id_user < len(df)):
             print("ID tidak ditemukan\n")
             continue
-        elif id_user < 0 or id_user >= len(DF):
-            print("ID tidak ditemukan")
-            continue
+
         break
 
-    row = DF.loc[id_user]
+    row = df.loc[id_user]
 
     print(f"""\n=== === === Data pengguna {id_user:04d} === === ===
 Nama    : {row['nama']}
 Umur    : {row['umur']}
 Hobi    : {row['hobi']}
 Kota    : {row['kota']}""")
-    dummy = input()
 
 def hapusPengguna():
     df = pd.read_csv("data_pengguna.csv")
 
-    print("\n=== Hapus Data Pengguna ===")
-    print("Contoh format ID: 0000, 0001, 0002")  # tampil sekali
+    # Strip header
+    df.columns = df.columns.str.strip()
 
-    # Prompt pertama (hanya sekali)
+    # Strip seluruh data (hanya string)
+    df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
+
+    print("\n=== Hapus Data Pengguna ===")
+    print("Contoh format ID: 0000, 0001, 0002")
+
     id_str = input("Masukkan ID yang ingin dihapus (4 digit) >>> ")
 
     while True:
-        # Cek format input
+        # Validasi format ID
         if not id_str.isdigit() or len(id_str) != 4:
             print("⚠ Input salah. ID harus terdiri dari 4 angka (contoh: 0003)")
             id_str = input("Harap masukkan ID sesuai format >>> ")
@@ -118,39 +130,171 @@ def hapusPengguna():
 
         id_user = int(id_str)
 
-        # Cek apakah ID ada
+        # Validasi ID ada
         if id_user < 0 or id_user >= len(df):
             print(f"⚠ ID {id_str} tidak ditemukan dalam data.")
             id_str = input("Silakan masukkan ID yang valid sesuai daftar >>> ")
             continue
         
-        # Jika valid, tampilkan datanya
         row = df.loc[id_user]
 
         print(f"""
 Data ditemukan:
 
 ID      : {id_user:04d}
-Nama    : {row['nama'.strip()]}
-Umur    : {row['umur'.strip()]}
-Hobi    : {row['hobi'.strip()]}
-Kota    : {row['kota'.strip()]}
+Nama    : {row['nama']}
+Umur    : {row['umur']}
+Hobi    : {row['hobi']}
+Kota    : {row['kota']}
 """)
 
-        konfirmasi = input("Apakah benar ingin menghapus data ini? (Y/N) >>> ").lower()
+        # Loop konfirmasi
+        while True:
+            konfirmasi = input("Apakah benar ingin menghapus data ini? (Y/N) >>> ").strip().lower()
 
-        if konfirmasi != "y":
-            print("❌ Penghapusan dibatalkan.")
-            return
+            if konfirmasi == "y":
+                df = df.drop(index=id_user).reset_index(drop=True)
+                df.to_csv("data_registrasi.csv", index=False)
+                print(f"✔ Data ID {id_user:04d} berhasil dihapus.")
+                return
 
-        # Hapus data
-        df = df.drop(index=id_user).reset_index(drop=True)
-        df.to_csv("data_registrasi.csv", index=False)
+            elif konfirmasi == "n":
+                print("❌ Penghapusan dibatalkan.")
+                return
 
-        print(f"✔ Data ID {id_user:04d} berhasil dihapus.")
-        dummy = input()
+            else:
+                print("⚠ Hanya boleh memasukkan 'Y' atau 'N'.")
+
+
+
+def editPengguna():
+    df = pd.read_csv("data_pengguna.csv")
+
+    df.columns = df.columns.str.strip()
+    df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
+
+    print("\n=== Edit Data Pengguna ===")
+    print("Contoh format ID: 0000, 0001, 0002")
+
+    id_str = input("Masukkan ID yang ingin diedit datanya (4 digit) >>> ")
+
+    while True:
+        if not id_str.isdigit() or len(id_str) != 4:
+            print("⚠ ID harus terdiri dari 4 digit angka!")
+            id_str = input("Masukkan ID sesuai format >>> ")
+            continue
+
+        id_user = int(id_str)
+
+        if not (0 <= id_user < len(df)):
+            print(f"⚠ ID {id_str} tidak ditemukan dalam data!")
+            id_str = input("Masukkan ID yang valid sesuai daftar >>> ")
+            continue
+
         break
 
+    row = df.loc[id_user]
+
+    while True:
+        print(f"""
+=== Data Pengguna {id_user:04d} ===
+Nama    : {row['nama']}
+Umur    : {row['umur']}
+Hobi    : {row['hobi']}
+Kota    : {row['kota']}
+
+1. Edit Nama
+2. Edit Umur
+3. Edit Hobi
+4. Edit kota
+5. Edit Semua
+0. Kembali
+""")
+
+        pilih = input("Pilih data yang ingin diedit >>> ").strip()
+
+        # === EDIT NAMA ===
+        if pilih == "1":
+            nama_baru = input("Masukkan nama baru >>> ").strip()
+            if nama_baru == "":
+                print("⚠ Input tidak boleh kosong!")
+                continue
+            df.loc[id_user, "nama"] = nama_baru
+
+        # === EDIT UMUR (DENGAN VALIDASI BARU) ===
+        elif pilih == "2":
+            while True:
+                umur_baru = input("Masukkan umur baru >>> ").strip()
+
+                if umur_baru == "":
+                    print("⚠ Input tidak boleh kosong!")
+                    continue
+
+                if not umur_baru.isdigit():
+                    print("⚠ Umur harus berupa angka!")
+                    continue
+
+                if int(umur_baru) <= 0:
+                    print("⚠ Umur harus angka positif!")
+                    continue
+
+                df.loc[id_user, "umur"] = umur_baru
+                break
+
+        # === EDIT HOBI ===
+        elif pilih == "3":
+            hobi_baru = input("Masukkan hobi baru >>> ").strip()
+            if hobi_baru == "":
+                print("⚠ Input tidak boleh kosong!")
+                continue
+            df.loc[id_user, "hobi"] = hobi_baru
+
+        # === EDIT KOTA ===
+        elif pilih == "4":
+            kota_baru = input("Masukkan kota baru >>> ").strip()
+            if kota_baru == "":
+                print("⚠ Input tidak boleh kosong!")
+                continue
+            df.loc[id_user, "kota"] = kota_baru
+
+        # === EDIT SEMUA FIELD SEKALIGUS ===
+        elif pilih == "5":
+            nama_baru = input("Masukkan nama baru >>> ").strip()
+            umur_baru = input("Masukkan umur baru >>> ").strip()
+            hobi_baru = input("Masukkan hobi baru >>> ").strip()
+            kota_baru = input("Masukkan kota baru >>> ").strip()
+
+            # Validasi untuk semua
+            if not (nama_baru and umur_baru and hobi_baru and kota_baru):
+                print("⚠ Tidak boleh ada data kosong!")
+                continue
+
+            if not umur_baru.isdigit():
+                print("⚠ Umur harus berupa angka!")
+                continue
+
+            df.loc[id_user] = [nama_baru, umur_baru, hobi_baru, kota_baru]
+
+        elif pilih == "0":
+            print("⏪ Kembali ke menu utama.")
+            return
+
+        else:
+            print("⚠ Pilihan tidak valid, coba lagi!")
+            continue
+
+        # === KONFIRMASI SIMPAN ===
+        while True:
+            konfirmasi = input("Simpan perubahan? (Y/N) >>> ").strip().lower()
+            if konfirmasi == "y":
+                df.to_csv("data_pengguna.csv", index=False)
+                print(f"✔ Data ID {id_user:04d} berhasil disimpan!")
+                return
+            elif konfirmasi == "n":
+                print("❌ Perubahan dibatalkan.")
+                return
+            else:
+                print("⚠ Hanya boleh memasukkan 'Y' atau 'N'.")
 
 def main():
     while True:
@@ -160,6 +304,7 @@ def main():
 2. masukkan data pengguna baru
 3. lihat data pengguna
 4. hapus pengguna
+5. edit data pengguna
 >>> '''))
         except ValueError:
             print('harap masukkan angka')
@@ -172,4 +317,6 @@ def main():
             lihatPengguna()
         elif pilih == 4:
             hapusPengguna()
+        elif pilih == 5:
+            editPengguna()
 main()
