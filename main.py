@@ -1,7 +1,66 @@
 import pandas as pd
-dummy = ''
-flag = True
-DF = pd.read_csv("data_pengguna.csv")
+from dotenv import load_dotenv
+from cryptography.fernet import Fernet
+import os
+# Muat .env sekali saat modul diimpor
+load_dotenv()
+
+def load_key():
+    key = os.getenv("APP_SECRET_KEY")
+
+    if not key:
+        raise ValueError("❌ Key tidak ditemukan di .env")
+
+    return key.encode()
+
+def encrypt_csv(input_file, output_file):
+    key = load_key()
+    f = Fernet(key)
+
+    with open(input_file, "rb") as file:
+        data = file.read()
+
+    encrypted = f.encrypt(data)
+
+    with open(output_file, "wb") as file:
+        file.write(encrypted)
+
+    print(f"✔ File {output_file} berhasil disimpan")
+
+def decrypt_csv(input_file, output_file):
+    key = load_key()
+    f = Fernet(key)
+
+    with open(input_file, "rb") as file:
+        data = file.read()
+
+    decrypted = f.decrypt(data)
+
+    with open(output_file, "wb") as file:
+        file.write(decrypted)
+
+def save_and_encrypt():
+    encrypt_csv("data_pengguna.csv", "data_pengguna.enc")
+    os.remove("data_pengguna.csv")
+
+def decrypt_on_start():
+    if os.path.exists("data_pengguna.enc"):
+        decrypt_csv("data_pengguna.enc", "data_pengguna.csv")
+        print("File berhasil dimuat dan siap untuk digunakan")
+    else:
+        print("⚠ File terenkripsi tidak ditemukan, menggunakan file CSV biasa.")
+
+
+def safe_read_csv(path="data_pengguna.csv"):
+    try:
+        df = pd.read_csv(path)
+    except (FileNotFoundError, pd.errors.EmptyDataError):
+        df = pd.DataFrame(columns=["nama", "umur", "hobi", "kota"])
+    except Exception as e:
+        print(f"⚠ Gagal membaca {path}: {e}")
+        df = pd.DataFrame(columns=["nama", "umur", "hobi", "kota"])
+    return df
+
 def registrasi():
     while True:
         nama = input("Masukkan nama anda: ")
@@ -30,53 +89,40 @@ def registrasi():
     return nama,umur,hobi,kota
 def dataPengguna():
     print("=== === === Daftar Nama Pengguna === === ===")
-    DF = pd.read_csv("data_pengguna.csv")
+    DF = safe_read_csv()
     for i,nama in enumerate(DF['nama']):
         print(f"{i:04d} {nama}")
 
 def register():
-    flag = True
     print('=== === === form registrasi === === ===')
-    nama, umur, hobi, kota = registrasi()
-    while flag == True:
-        Auth = input(f'''apakah data ini sudah benar?
+    while True:
+        nama, umur, hobi, kota = registrasi()
+
+        while True:
+            Auth = input(f'''apakah data ini sudah benar?
 Nama\t: {nama}
 Umur\t: {umur}
 Hobi\t: {hobi}
 Kota\t: {kota}
-[Y]/[N]? >>> ''')
-        Auth = Auth.lower()
-        if Auth == 'n':
-            print('silahkan masukan ulang data anda')
-            nama, umur, hobi, kota = registrasi()
-        elif Auth == 'y':
-            nama, umur, hobi, kota
-            with open("data_pengguna.csv", "a+") as file:
-                file.write(f"{nama}, {umur}, {hobi}, {kota}\n")            
-            print('data registrasi disimpan')
-            break
-        else:
-            while True:
-                Auth = input('silahkan masukkan Y/N saja!!')
-                Auth = Auth.lower()
-                if Auth == 'n':
-                    print('silahkan masukan ulang data anda')
-                    nama, umur, hobi, kota = registrasi()
-                    break
-                elif Auth == 'y':
-                    print('data registrasi disimpan')
-                    nama, umur, hobi, kota
-                    with open("data_pengguna.csv", "a+") as file:
-                        file.write(f"{nama}, {umur}, {hobi}, {kota}\n")            
-                    print('data registrasi disimpan')
-                    flag = False
-                    dummy = input()
-                    break
-import pandas as pd
+[Y]/[N]? >>> ''').strip().lower()
+
+            if Auth == 'n':
+                print('Silakan masukkan ulang data Anda')
+                break  # keluar konfirmasi, ulang registrasi
+            elif Auth == 'y':
+                # Simpan data menggunakan pandas (safely append)
+                row = {"nama": nama, "umur": umur, "hobi": hobi, "kota": kota}
+                df_row = pd.DataFrame([row])
+                write_header = not (os.path.exists("data_pengguna.csv") and os.path.getsize("data_pengguna.csv") > 0)
+                df_row.to_csv("data_pengguna.csv", mode="a", header=write_header, index=False)
+                print('✔ Data registrasi disimpan')
+                return
+            else:
+                print('Silakan masukkan Y atau N saja')
 
 def lihatPengguna():
     # Load ulang data setiap fungsi dipanggil
-    df = pd.read_csv("data_pengguna.csv")
+    df = safe_read_csv()
 
     # Bersihkan header
     df.columns = df.columns.str.strip()
@@ -108,7 +154,7 @@ Hobi    : {row['hobi']}
 Kota    : {row['kota']}""")
 
 def hapusPengguna():
-    df = pd.read_csv("data_pengguna.csv")
+    df = safe_read_csv()
 
     # Strip header
     df.columns = df.columns.str.strip()
@@ -154,7 +200,7 @@ Kota    : {row['kota']}
 
             if konfirmasi == "y":
                 df = df.drop(index=id_user).reset_index(drop=True)
-                df.to_csv("data_registrasi.csv", index=False)
+                df.to_csv("data_pengguna.csv", index=False)
                 print(f"✔ Data ID {id_user:04d} berhasil dihapus.")
                 return
 
@@ -168,7 +214,7 @@ Kota    : {row['kota']}
 
 
 def editPengguna():
-    df = pd.read_csv("data_pengguna.csv")
+    df = safe_read_csv()
 
     df.columns = df.columns.str.strip()
     df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
@@ -306,17 +352,23 @@ def main():
 4. hapus pengguna
 5. edit data pengguna
 >>> '''))
+            if pilih == 1:
+                dataPengguna()
+            elif pilih == 2:
+                register()
+            elif pilih == 3:
+                lihatPengguna()
+            elif pilih == 4:
+                hapusPengguna()
+            elif pilih == 5:
+                editPengguna()
+            elif pilih == 6:
+                save_and_encrypt()
         except ValueError:
             print('harap masukkan angka')
             continue
-        if pilih == 1:
-            dataPengguna()
-        elif pilih == 2:
-            register()
-        elif pilih == 3:
-            lihatPengguna()
-        elif pilih == 4:
-            hapusPengguna()
-        elif pilih == 5:
-            editPengguna()
+        except KeyboardInterrupt:
+            save_and_encrypt()
+            break
+decrypt_on_start()
 main()
