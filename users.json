@@ -1,0 +1,16 @@
+[
+  {
+    "username": "admin",
+    "salt": "9b2651897ea0a4ff0ad1939f1383170f",
+    "pw_hash": "ea24d5bedb50575849fd0e239b590cbafdd67c88838793d115825ec50068d60f",
+    "role": "admin",
+    "created_at": "2025-11-24T10:35:24.826263Z"
+  },
+  {
+    "username": "12",
+    "salt": "9a8b86652e1f4affdb5d2592d7a97d36",
+    "pw_hash": "3af46cf3935adbd2317fba279fb0ef796cad986752ab83b185d26999717cb4db",
+    "role": "user",
+    "created_at": "2025-11-24T10:54:59.249066Z"
+  }
+]
